@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Zappy FC · FC 27 Pro Clubs</title>
+  <meta name="description" content="Zappy FC is an FC 27 Clubs team. Apply to join the squad in under a minute.">
+  <meta name="theme-color" content="#040806">
+  <link rel="canonical" href="https://zappyfc.online/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zappy FC · FC 27 Pro Clubs">
+  <meta property="og:description" content="Recruitment is open. Apply to join Zappy FC.">
+  <meta property="og:url" content="https://zappyfc.online/">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <div class="demo-banner" id="demoBanner" hidden>
+    <b>DEMO MODE</b> · the club database isn't connected yet, so applications are only saved on this device.
+  </div>
+
+  <!-- SVG symbols -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-tiktok" viewBox="0 0 24 24"><path fill="currentColor" d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6c0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2 4 14h7l-2 8 10-12h-7z"/></symbol>
+    <symbol id="i-pad" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M7 7h10a5 5 0 0 1 4.9 6l-.7 3.4a2.5 2.5 0 0 1-4.3 1.2L14.5 15h-5l-2.4 2.6a2.5 2.5 0 0 1-4.3-1.2L2.1 13A5 5 0 0 1 7 7z"/><path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7 10v4M5 12h4"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-pc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5"/><path d="M9 20.5h6M12 16.5v4"/></g></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></g></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3.2 3 15.8 0 19M12 2.5c-3 3.2-3 15.8 0 19"/></g></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.4 3.4 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></g></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></g></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M3 5h18v11H9l-5 4v-4H3z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="square" d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 12H5M11 6l-6 6 6 6"/></symbol>
+  </svg>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="./" aria-label="Zappy FC home">
+        <svg viewBox="0 0 100 104" aria-hidden="true"><path d="M50 4 L90 16 V50 C90 76 72 92 50 100 C28 92 10 76 10 50 V16 Z" fill="#06100a" stroke="#39ff7a" stroke-width="6"/><path d="M60 20 L32 56 H49 L41 86 L70 46 H53 Z" fill="#39ff7a"/></svg>
+        ZAPPY<span>FC</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a class="hide-sm" href="#how">How it works</a>
+        <a class="hide-sm" href="#club">The club</a>
+        <a class="btn btn-ghost btn-sm" href="https://www.tiktok.com/@zappyfc3" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-tiktok"/></svg>@zappyfc3
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <div class="pill"><span class="dot"></span>Recruitment open · FC 27 Clubs</div>
+
+        <svg class="crest" viewBox="0 0 100 104" aria-hidden="true">
+          <path class="shield" d="M50 4 L90 16 V50 C90 76 72 92 50 100 C28 92 10 76 10 50 V16 Z" fill="rgba(6,16,10,.85)" stroke="#39ff7a" stroke-width="3.5"/>
+          <path class="shield" d="M50 12 L82 22 V50 C82 71 68 84 50 91 C32 84 18 71 18 50 V22 Z" fill="none" stroke="rgba(57,255,122,.35)" stroke-width="1.2"/>
+          <path class="bolt" d="M60 20 L32 56 H49 L41 86 L70 46 H53 Z" fill="#39ff7a"/>
+        </svg>
+
+        <h1 class="glitch" data-text="ZAPPY FC">ZAPPY <span class="fc">FC</span></h1>
+        <p class="tagline" aria-live="off"><span id="typed">FC 27 Pro Clubs</span><span class="caret" aria-hidden="true"></span></p>
+
+        <div class="cta-row">
+          <button class="btn btn-primary btn-lg" type="button" data-open-join>
+            <svg aria-hidden="true"><use href="#i-bolt"/></svg>I want to join
+          </button>
+          <a class="btn btn-ghost btn-lg" href="https://www.tiktok.com/@zappyfc3" target="_blank" rel="noopener">
+            <svg aria-hidden="true"><use href="#i-tiktok"/></svg>Follow @zappyfc3
+          </a>
+        </div>
+
+        <div class="hero-meta">
+          <span><i></i>Takes under a minute</span>
+          <span><i></i>All platforms welcome</span>
+          <span><i></i>We reply on TikTok</span>
+        </div>
+        <a class="scroll-hint" href="#how" aria-label="Scroll down"></a>
+      </div>
+    </section>
+
+    <section class="block" id="how">
+      <div class="wrap">
+        <div class="eyebrow reveal">How it works</div>
+        <h2 class="section-title reveal">Three steps to the squad</h2>
+        <div class="grid-3">
+          <article class="card hud reveal">
+            <div class="num">01</div>
+            <h3>Apply</h3>
+            <p>Tell us your TikTok, platform, server region and how good you rate yourself. One minute, tops.</p>
+          </article>
+          <article class="card hud reveal">
+            <div class="num">02</div>
+            <h3>We review</h3>
+            <p>The Zappy FC admins go through every application and pick players who fit the team.</p>
+          </article>
+          <article class="card hud reveal">
+            <div class="num">03</div>
+            <h3>We DM you</h3>
+            <p>If you're in, we message you on TikTok. Keep your DMs open so our message gets through.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="club">
+      <div class="wrap">
+        <div class="eyebrow reveal">The club</div>
+        <h2 class="section-title reveal">What Zappy FC is about</h2>
+        <div class="grid-3">
+          <article class="card hud reveal">
+            <div class="ico"><svg aria-hidden="true"><use href="#i-users"/></svg></div>
+            <h3>Team first</h3>
+            <p>Pass, move, cover. We win as eleven, not as one player trying to dribble the whole pitch.</p>
+          </article>
+          <article class="card hud reveal">
+            <div class="ico"><svg aria-hidden="true"><use href="#i-target"/></svg></div>
+            <h3>Show up</h3>
+            <p>Be on for sessions, hold your position and stay locked in for the full match.</p>
+          </article>
+          <article class="card hud reveal">
+            <div class="ico"><svg aria-hidden="true"><use href="#i-chat"/></svg></div>
+            <h3>Good vibes</h3>
+            <p>Every level can apply. Talk on the mic, keep it positive and help the squad improve.</p>
+          </article>
+        </div>
+
+        <div class="cta-band hud reveal">
+          <div class="lines" aria-hidden="true"></div>
+          <div style="position:relative">
+            <h2>Think you've got what it takes?</h2>
+            <p>Applications go straight to the Zappy FC admins.</p>
+          </div>
+          <button class="btn btn-primary btn-lg" type="button" data-open-join style="position:relative">
+            Apply now<svg aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="year">2026</span> Zappy FC · zappyfc.online</span>
+      <a href="https://www.tiktok.com/@zappyfc3" target="_blank" rel="noopener">TikTok @zappyfc3</a>
+    </div>
+  </footer>
+
+  <!-- ===================== JOIN WIZARD ===================== -->
+  <div class="join" id="join" hidden role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="join-sweep" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="join-shell hud">
+      <div class="join-top">
+        <div class="join-step-label" id="joinTitle">STEP <b id="stepNum">1</b> / <span id="stepTotal">6</span></div>
+        <button class="icon-btn" type="button" data-close-join aria-label="Close application">
+          <svg aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <div class="progress" id="progress" aria-hidden="true"></div>
+
+      <form id="joinForm" novalidate autocomplete="off">
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <!-- 1. TikTok -->
+        <section class="step" data-step="tiktok">
+          <h2>What's your <em>TikTok</em> username?</h2>
+          <p class="sub">This is how we'll contact you if you get picked.</p>
+          <label class="sr" for="tiktok">TikTok username</label>
+          <div class="field" id="tiktokField">
+            <span class="prefix" aria-hidden="true">@</span>
+            <input id="tiktok" name="tiktok" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="25" placeholder="yourusername" aria-describedby="tiktokErr">
+          </div>
+          <p class="err" id="tiktokErr" role="alert"></p>
+
+          <label class="toggle" id="msgToggle">
+            <input type="checkbox" id="msgOpen" name="messages_open">
+            <span class="sw" aria-hidden="true"></span>
+            <span class="t-text"><b>My TikTok messages are turned on</b><small>We can only reach you if people can DM you.</small></span>
+          </label>
+          <details class="howto">
+            <summary>How do I turn on messages?</summary>
+            <ol>
+              <li>Open TikTok and go to your <b>Profile</b>.</li>
+              <li>Tap the <b>☰ menu</b> → <b>Settings and privacy</b> → <b>Privacy</b>.</li>
+              <li>Tap <b>Direct messages</b> and choose <b>Everyone</b>.</li>
+              <li>Also follow <b>@zappyfc3</b> so our message lands in your inbox.</li>
+            </ol>
+          </details>
+        </section>
+
+        <!-- 2. Platform -->
+        <section class="step" data-step="platform">
+          <h2>Which <em>platform</em> do you play on?</h2>
+          <p class="sub">Pick the one you'll play Clubs on.</p>
+          <div class="opts" role="radiogroup" aria-label="Platform">
+            <label class="opt"><input type="radio" name="platform" value="PlayStation 5"><span class="opt-body"><svg aria-hidden="true"><use href="#i-pad"/></svg><span><b>PlayStation 5</b><small>PS5</small></span><span class="check"></span></span></label>
+            <label class="opt"><input type="radio" name="platform" value="Xbox Series X|S"><span class="opt-body"><svg aria-hidden="true"><use href="#i-pad"/></svg><span><b>Xbox Series X|S</b><small>Xbox</small></span><span class="check"></span></span></label>
+            <label class="opt"><input type="radio" name="platform" value="PC"><span class="opt-body"><svg aria-hidden="true"><use href="#i-pc"/></svg><span><b>PC</b><small>EA app / Steam / Epic</small></span><span class="check"></span></span></label>
+            <label class="opt"><input type="radio" name="platform" value="Other"><span class="opt-body"><svg aria-hidden="true"><use href="#i-dots"/></svg><span><b>Other</b><small>Something else</small></span><span class="check"></span></span></label>
+          </div>
+          <p class="err" id="platformErr" role="alert"></p>
+        </section>
+
+        <!-- 3. Region -->
+        <section class="step" data-step="region">
+          <h2>What <em>server region</em> are you in?</h2>
+          <p class="sub">The region you usually connect to, so we can keep ping low.</p>
+          <div class="opts" role="radiogroup" aria-label="Server region" id="regionOpts"></div>
+          <p class="err" id="regionErr" role="alert"></p>
+        </section>
+
+        <!-- 4. Skill -->
+        <section class="step" data-step="skill">
+          <h2>How <em>good</em> are you, honestly?</h2>
+          <p class="sub">1 = absolute beginner, 10 = absolute best in the game.</p>
+          <div class="gauge" id="gauge">
+            <div class="gauge-num" id="skillNum">5</div>
+            <div class="gauge-label" id="skillLabel">Average</div>
+            <div class="bars" id="skillBars" role="radiogroup" aria-label="Skill rating from 1 to 10"></div>
+            <div class="bars-ends"><span>Beginner</span><span>The best</span></div>
+          </div>
+        </section>
+
+        <!-- 5. Reason -->
+        <section class="step" data-step="reason">
+          <h2>Why do you want to <em>join</em>?</h2>
+          <p class="sub">Just a few words is fine.</p>
+          <label class="sr" for="reason">Why you want to join</label>
+          <div class="field" id="reasonField">
+            <textarea id="reason" name="reason" maxlength="140" rows="3" placeholder="e.g. Want a team that actually passes" aria-describedby="reasonErr"></textarea>
+          </div>
+          <div class="hint"><span class="err" id="reasonErr" role="alert" style="margin:0"></span><span id="reasonCount">0 / 140</span></div>
+        </section>
+
+        <!-- 6. Review -->
+        <section class="step" data-step="review">
+          <h2>Check it, then <em>send</em>.</h2>
+          <p class="sub">Make sure your TikTok is spelled right.</p>
+          <dl class="review" id="review"></dl>
+          <div class="submit-err" id="submitErr" role="alert" hidden></div>
+        </section>
+
+        <!-- Done -->
+        <section class="step done" data-step="done">
+          <div class="done-ring" aria-hidden="true">
+            <svg viewBox="0 0 120 120">
+              <circle class="ring" cx="60" cy="60" r="54" fill="none" stroke="#39ff7a" stroke-width="4" style="filter:drop-shadow(0 0 8px #39ff7a)"/>
+              <path class="tick" d="M38 62 l15 15 l30 -32" fill="none" stroke="#39ff7a" stroke-width="7" stroke-linecap="square" style="filter:drop-shadow(0 0 8px #39ff7a)"/>
+            </svg>
+          </div>
+          <h2>Application <em>sent</em>!</h2>
+          <p class="sub" id="doneMsg">The admins will check it soon. Keep your TikTok DMs open, we'll message you there.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://www.tiktok.com/@zappyfc3" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-tiktok"/></svg>Follow @zappyfc3</a>
+            <button class="btn btn-ghost" type="button" data-close-join>Back to site</button>
+          </div>
+        </section>
+      </form>
+
+      <div class="join-nav" id="joinNav">
+        <button class="btn btn-ghost" type="button" id="backBtn"><svg aria-hidden="true"><use href="#i-back"/></svg>Back</button>
+        <button class="btn btn-primary" type="button" id="nextBtn">Next<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div class="kbd-hint" id="kbdHint">Press <kbd>Enter</kbd> to continue</div>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toasts" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/site.js"></script>
+  <script src="js/join.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin HQ · Zappy FC</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#040806">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <div class="demo-banner" id="demoBanner" hidden>
+    <b>DEMO MODE</b> · not connected to the club database. You only see applications made in this browser (plus 3 samples).
+  </div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-tiktok" viewBox="0 0 24 24"><path fill="currentColor" d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6c0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></symbol>
+    <symbol id="i-pad" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M7 7h10a5 5 0 0 1 4.9 6l-.7 3.4a2.5 2.5 0 0 1-4.3 1.2L14.5 15h-5l-2.4 2.6a2.5 2.5 0 0 1-4.3-1.2L2.1 13A5 5 0 0 1 7 7z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3.2 3 15.8 0 19M12 2.5c-3 3.2-3 15.8 0 19"/></g></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M3 5h18v11H9l-5 4v-4H3z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M14 4H4v16h10M10 12h11M17 8l4 4-4 4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></g></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12"/><path d="M16 8V4H4v12h4"/></g></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" d="m4 12.5 5 5L20 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.6" d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 3v13M6 11l6 6 6-6M4 21h16"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10.5" width="16" height="11"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 15v3"/></g></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M3 13h5l1.5 3h5l1.5-3h5M5 4h14l2 9v7H3v-7z"/></symbol>
+  </svg>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="../" aria-label="Zappy FC site">
+        <svg viewBox="0 0 100 104" aria-hidden="true"><path d="M50 4 L90 16 V50 C90 76 72 92 50 100 C28 92 10 76 10 50 V16 Z" fill="#06100a" stroke="#39ff7a" stroke-width="6"/><path d="M60 20 L32 56 H49 L41 86 L70 46 H53 Z" fill="#39ff7a"/></svg>
+        ZAPPY<span>FC</span>
+      </a>
+      <nav class="nav-links"><a href="../">View site</a></nav>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <div class="wrap login-wrap" id="loginView" hidden>
+    <form class="login hud" id="loginForm" novalidate>
+      <svg class="lock" aria-hidden="true"><use href="#i-lock"/></svg>
+      <h1>ADMIN <span>HQ</span></h1>
+      <p class="sub">Sign in to review Zappy FC applications.</p>
+      <label class="lbl" for="user">Username</label>
+      <div class="field"><input id="user" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+      <label class="lbl" for="pass">Password</label>
+      <div class="field"><input id="pass" name="password" type="password" autocomplete="current-password" required></div>
+      <p class="err" id="loginErr" role="alert"></p>
+      <button class="btn btn-primary" type="submit" id="loginBtn">Enter HQ</button>
+      <p class="demo-hint" id="demoHint" hidden>Demo mode: any username, password <b>zappy-demo</b></p>
+    </form>
+  </div>
+
+  <!-- DASHBOARD -->
+  <main class="admin-main" id="dashView" hidden>
+    <div class="wrap">
+      <div class="hq-head">
+        <div>
+          <h1>ADMIN <span>HQ</span></h1>
+          <div class="who">Signed in as <b id="whoName">Admin</b></div>
+        </div>
+        <div class="hq-actions">
+          <span class="live" title="Auto-refreshes every 20 seconds"><i></i>Live</span>
+          <button class="icon-btn" type="button" id="exportBtn" aria-label="Download CSV" title="Download CSV"><svg aria-hidden="true"><use href="#i-down"/></svg></button>
+          <button class="icon-btn" type="button" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg aria-hidden="true"><use href="#i-refresh"/></svg></button>
+          <button class="btn btn-ghost btn-sm" type="button" id="logoutBtn"><svg aria-hidden="true"><use href="#i-out"/></svg>Log out</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat hud"><div class="k">Total</div><div class="v" id="sTotal">0</div></div>
+        <div class="stat hud pending"><div class="k">Pending</div><div class="v" id="sPending">0</div></div>
+        <div class="stat hud accepted"><div class="k">Accepted</div><div class="v" id="sAccepted">0</div></div>
+        <div class="stat hud rejected"><div class="k">Rejected</div><div class="v" id="sRejected">0</div></div>
+        <div class="stat hud"><div class="k">Avg skill</div><div class="v" id="sAvg">–</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Filter by status">
+          <button class="tab on" type="button" data-f="pending" role="tab">Pending<span class="c" id="cPending">0</span></button>
+          <button class="tab" type="button" data-f="accepted" role="tab">Accepted<span class="c" id="cAccepted">0</span></button>
+          <button class="tab" type="button" data-f="rejected" role="tab">Rejected<span class="c" id="cRejected">0</span></button>
+          <button class="tab" type="button" data-f="all" role="tab">All<span class="c" id="cAll">0</span></button>
+        </div>
+        <div class="search grow">
+          <svg aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="q" type="search" placeholder="Search TikTok or reason…" aria-label="Search applications">
+        </div>
+        <select id="fPlatform" aria-label="Filter by platform"><option value="">All platforms</option></select>
+        <select id="fRegion" aria-label="Filter by region"><option value="">All regions</option></select>
+        <select id="sort" aria-label="Sort">
+          <option value="new">Newest first</option>
+          <option value="old">Oldest first</option>
+          <option value="skill-desc">Skill: high → low</option>
+          <option value="skill-asc">Skill: low → high</option>
+        </select>
+      </div>
+
+      <div class="apps" id="apps"></div>
+    </div>
+  </main>
+
+  <div class="toast-host" id="toasts" aria-live="polite"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/bg.js"></script>
+  <script src="../js/site.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>
