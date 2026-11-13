@@ -1,21 +1,20 @@
 /*
- * ZAPPY FC — API adapter.
- * Every call to the backend goes through here, so if the Forgebase API ever
- * looks different, this is the only file that needs to change.
+ * ZAPPY FC — data layer.
+ * Talks to the ForgeBase project (Supabase-compatible) with supabase-js.
+ * Every backend call lives here; with no ForgeBase config it runs in demo mode.
  *
- * Contract (see FORGEBASE_PROMPT.md):
- *   POST   /api/applications                 public   -> { id }
- *   POST   /api/admin/login                  public   -> { token, name }
- *   GET    /api/admin/applications           bearer   -> [ application ]
- *   PATCH  /api/admin/applications/:id       bearer   -> application
- *   DELETE /api/admin/applications/:id       bearer   -> { ok: true }
+ * Table: applications (see forgebase/schema.sql)
+ *   public (anon key)   → INSERT only
+ *   signed-in admins    → SELECT / UPDATE / DELETE
  */
 (function () {
   const cfg = window.ZAPPY_CONFIG || {};
-  const BASE = String(cfg.API_BASE_URL || "").trim().replace(/\/+$/, "");
-  const DEMO = !BASE;
-  const TOKEN_KEY = "zappy_admin_token";
+  const URL_ = String(cfg.FORGEBASE_URL || "").trim().replace(/\/+$/, "");
+  const KEY = String(cfg.FORGEBASE_ANON_KEY || "").trim();
+  const DEMO = !URL_ || !KEY || !(window.supabase && window.supabase.createClient);
+  const TABLE = "applications";
   const NAME_KEY = "zappy_admin_name";
+  const DEMO_TOKEN_KEY = "zappy_admin_token";
   const DEMO_KEY = "zappy_demo_applications";
   const DEMO_PASSWORD = "zappy-demo";
 
@@ -29,46 +28,30 @@
     constructor(message, status) { super(message); this.status = status; }
   }
 
-  async function request(path, { method = "GET", body, auth = false } = {}) {
-    const headers = { Accept: "application/json" };
-    if (body !== undefined) headers["Content-Type"] = "application/json";
-    if (auth) {
-      const token = store.get(TOKEN_KEY);
-      if (token) headers.Authorization = "Bearer " + token;
-    }
-    let res;
-    try {
-      res = await fetch(BASE + path, {
-        method,
-        headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
-    } catch {
-      throw new ApiError("Can't reach the Zappy FC server. Check your connection and try again.", 0);
-    }
-    const text = await res.text();
-    let data = null;
-    if (text) { try { data = JSON.parse(text); } catch { data = { message: text }; } }
-    if (!res.ok) {
-      if (res.status === 401 && auth) { store.del(TOKEN_KEY); store.del(NAME_KEY); }
-      const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
-      throw new ApiError(typeof msg === "string" ? msg : "Request failed", res.status);
-    }
-    return data;
-  }
+  const db = DEMO ? null : window.supabase.createClient(URL_, KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: "zappyfc-admin-auth" },
+  });
+  let session = null;
 
-  // Accept a bare array or common wrappers like {applications:[…]} / {data:[…]}.
-  function unwrapList(data) {
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.applications)) return data.applications;
-    if (data && Array.isArray(data.data)) return data.data;
-    if (data && Array.isArray(data.items)) return data.items;
-    return [];
-  }
-  function unwrapOne(data) {
-    if (data && data.application) return data.application;
-    if (data && data.data && !Array.isArray(data.data)) return data.data;
-    return data;
+  // Turn a supabase-js / network error into a friendly ApiError.
+  function toError(err, fallback) {
+    if (!err) return new ApiError(fallback || "Something went wrong.", 500);
+    const msg = String(err.message || err.error_description || err.msg || "");
+    const code = String(err.code || "");
+    const status = Number(err.status || err.statusCode || 0);
+    if (code === "23505" || /unique|duplicate/i.test(msg)) {
+      return new ApiError("This TikTok already has an application waiting for review.", 409);
+    }
+    if (code === "23514" || /check constraint|constraint failed/i.test(msg)) {
+      return new ApiError("Some answers weren't accepted. Go back, check them and try again.", 400);
+    }
+    if (status === 401 || code === "PGRST301" || /jwt|not authenticated|invalid token/i.test(msg)) {
+      return new ApiError("Your session expired. Please sign in again.", 401);
+    }
+    if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+      return new ApiError("Can't reach the Zappy FC server. Check your connection and try again.", 0);
+    }
+    return new ApiError(msg || fallback || "Something went wrong.", status || 500);
   }
 
   // ---------- demo mode (browser-only storage) ----------
@@ -98,68 +81,106 @@
     demoPassword: DEMO_PASSWORD,
     ApiError,
 
+    /** Resolve the saved admin session (call once before isLoggedIn). */
+    async ready() {
+      if (DEMO) return;
+      try {
+        const { data } = await db.auth.getSession();
+        session = data && data.session;
+      } catch { session = null; }
+      db.auth.onAuthStateChange((_evt, s) => { session = s; });
+    },
+
     async submitApplication(app) {
+      const row = {
+        tiktok: app.tiktok,
+        messages_open: true,
+        platform: app.platform,
+        region: app.region,
+        skill: app.skill,
+        reason: app.reason,
+      };
       if (DEMO) {
         await wait(700);
         const list = demoLoad();
-        const handle = app.tiktok.toLowerCase();
+        const handle = row.tiktok.toLowerCase();
         if (list.some((a) => a.tiktok.toLowerCase() === handle && a.status === "pending")) {
           throw new ApiError("This TikTok already has an application waiting for review.", 409);
         }
-        const rec = {
-          id: "demo-" + Date.now().toString(36), ...app, status: "pending", note: "",
-          decided_by: null, decided_at: null, created_at: new Date().toISOString(),
-        };
-        list.unshift(rec);
+        list.unshift({ id: "demo-" + Date.now().toString(36), ...row, status: "pending", note: "",
+          decided_by: null, decided_at: null, created_at: new Date().toISOString() });
         demoSave(list);
-        return { id: rec.id };
+        return { ok: true };
       }
-      return request("/api/applications", { method: "POST", body: app });
+      let res;
+      try { res = await db.from(TABLE).insert(row); } catch (e) { throw toError(e); }
+      if (res.error) throw toError(res.error, "Couldn't send your application.");
+      return { ok: true };
     },
 
-    isLoggedIn() { return !!store.get(TOKEN_KEY); },
-    adminName() { return store.get(NAME_KEY) || "Admin"; },
+    isLoggedIn() { return DEMO ? !!store.get(DEMO_TOKEN_KEY) : !!session; },
+    adminName() {
+      if (!DEMO && session && session.user) {
+        const u = session.user, m = u.user_metadata || {};
+        return m.name || m.full_name || m.username || (u.email ? u.email.split("@")[0] : "Admin");
+      }
+      return store.get(NAME_KEY) || "Admin";
+    },
 
-    async login(username, password) {
+    async login(email, password) {
       if (DEMO) {
         await wait(500);
-        if (password !== DEMO_PASSWORD) throw new ApiError("Wrong username or password.", 401);
-        store.set(TOKEN_KEY, "demo");
-        store.set(NAME_KEY, username || "Admin");
-        return { name: username || "Admin" };
+        if (password !== DEMO_PASSWORD) throw new ApiError("Wrong email or password.", 401);
+        store.set(DEMO_TOKEN_KEY, "demo");
+        store.set(NAME_KEY, (email || "Admin").split("@")[0]);
+        return { name: api.adminName() };
       }
-      const data = await request("/api/admin/login", { method: "POST", body: { username, password } });
-      const token = data && (data.token || data.access_token);
-      if (!token) throw new ApiError("Login worked but the server sent no token.", 500);
-      store.set(TOKEN_KEY, token);
-      store.set(NAME_KEY, (data.name || data.username || username || "Admin"));
-      return { name: store.get(NAME_KEY) };
+      let res;
+      try { res = await db.auth.signInWithPassword({ email, password }); } catch (e) { throw toError(e); }
+      if (res.error) {
+        const m = String(res.error.message || "");
+        if (/invalid|credentials|password/i.test(m)) throw new ApiError("Wrong email or password.", 401);
+        throw toError(res.error, "Sign-in failed.");
+      }
+      session = res.data.session;
+      return { name: api.adminName() };
     },
 
-    logout() { store.del(TOKEN_KEY); store.del(NAME_KEY); },
+    async logout() {
+      store.del(DEMO_TOKEN_KEY); store.del(NAME_KEY);
+      if (!DEMO) { try { await db.auth.signOut(); } catch { /* ignore */ } session = null; }
+    },
 
     async listApplications() {
       if (DEMO) { await wait(250); return demoLoad(); }
-      return unwrapList(await request("/api/admin/applications", { auth: true }));
+      let res;
+      try { res = await db.from(TABLE).select("*").order("created_at", { ascending: false }); }
+      catch (e) { throw toError(e); }
+      if (res.error) throw toError(res.error, "Couldn't load applications.");
+      return res.data || [];
     },
 
     async updateApplication(id, patch) {
+      const p = { ...patch };
+      if ("status" in p) {
+        const decided = p.status !== "pending";
+        p.decided_by = decided ? api.adminName() : null;
+        p.decided_at = decided ? new Date().toISOString() : null;
+      }
       if (DEMO) {
         await wait(200);
         const list = demoLoad();
         const rec = list.find((a) => a.id === id);
         if (!rec) throw new ApiError("Application not found.", 404);
-        Object.assign(rec, patch);
-        if ("status" in patch) {
-          rec.decided_by = patch.status === "pending" ? null : api.adminName();
-          rec.decided_at = patch.status === "pending" ? null : new Date().toISOString();
-        }
+        Object.assign(rec, p);
         demoSave(list);
         return rec;
       }
-      return unwrapOne(await request("/api/admin/applications/" + encodeURIComponent(id), {
-        method: "PATCH", body: patch, auth: true,
-      }));
+      let res;
+      try { res = await db.from(TABLE).update(p).eq("id", id).select(); } catch (e) { throw toError(e); }
+      if (res.error) throw toError(res.error, "Couldn't update.");
+      if (Array.isArray(res.data) && res.data.length === 0) throw new ApiError("Application not found or no permission.", 404);
+      return Array.isArray(res.data) ? res.data[0] : res.data;
     },
 
     async deleteApplication(id) {
@@ -168,7 +189,25 @@
         demoSave(demoLoad().filter((a) => a.id !== id));
         return { ok: true };
       }
-      return request("/api/admin/applications/" + encodeURIComponent(id), { method: "DELETE", auth: true });
+      let res;
+      try { res = await db.from(TABLE).delete().eq("id", id); } catch (e) { throw toError(e); }
+      if (res.error) throw toError(res.error, "Couldn't delete.");
+      return { ok: true };
+    },
+
+    /** Live updates for the admin dashboard. Returns an unsubscribe function. */
+    subscribe(onChange) {
+      if (DEMO) {
+        const h = (e) => { if (e.key === DEMO_KEY) onChange(); };
+        window.addEventListener("storage", h);
+        return () => window.removeEventListener("storage", h);
+      }
+      try {
+        const ch = db.channel("zappy-applications")
+          .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => onChange())
+          .subscribe();
+        return () => { try { db.removeChannel(ch); } catch { /* ignore */ } };
+      } catch { return () => {}; }
     },
   };
 

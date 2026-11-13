@@ -8,7 +8,7 @@
   const SEEN_KEY = "zappy_admin_seen";
   const REFRESH_MS = 20000;
 
-  let apps = [], filter = "pending", timer = null, firstLoad = true, loading = false;
+  let apps = [], filter = "pending", timer = null, firstLoad = true, loading = false, unsub = null, liveTimer = null;
   let seen = new Set();
   try { seen = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || "[]")); } catch { /* ignore */ }
   const hadSeen = seen.size > 0; // been here before → flag what's new since last visit
@@ -17,6 +17,7 @@
   // ---------- views ----------
   function showLogin() {
     stopTimer();
+    if (unsub) { unsub(); unsub = null; }
     $("#dashView").hidden = true;
     $("#loginView").hidden = false;
     $("#demoHint").hidden = !api.demo;
@@ -29,6 +30,7 @@
     $("#whoName").textContent = api.adminName();
     load(true);
     startTimer();
+    if (!unsub) unsub = api.subscribe(() => { clearTimeout(liveTimer); liveTimer = setTimeout(() => load(false), 400); });
   }
 
   $("#loginForm").addEventListener("submit", async (e) => {
@@ -36,7 +38,7 @@
     const btn = $("#loginBtn"), err = $("#loginErr");
     const u = $("#user").value.trim(), p = $("#pass").value;
     err.textContent = "";
-    if (!u || !p) { err.textContent = "Enter your username and password."; return; }
+    if (!u || !p) { err.textContent = "Enter your email and password."; return; }
     btn.classList.add("loading");
     try {
       await api.login(u, p);
@@ -47,14 +49,21 @@
     } finally { btn.classList.remove("loading"); }
   });
 
-  $("#logoutBtn").addEventListener("click", () => { api.logout(); apps = []; firstLoad = true; showLogin(); });
+  $("#logoutBtn").addEventListener("click", async () => { await api.logout(); apps = []; firstLoad = true; showLogin(); });
 
   // ---------- data ----------
+  // ForgeBase/SQLite may return "YYYY-MM-DD HH:MM:SS" (UTC, no zone) — make it ISO.
+  function iso(v) {
+    if (!v) return null;
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(s)) return s.replace(" ", "T") + (/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? "" : "Z");
+    return s;
+  }
   function normalize(a) {
     return {
       id: String(a.id ?? a._id ?? ""),
       tiktok: String(a.tiktok ?? a.tiktok_handle ?? "").replace(/^@+/, ""),
-      messages_open: a.messages_open !== false,
+      messages_open: a.messages_open !== false && a.messages_open !== 0,
       platform: a.platform || "—",
       region: a.region || "—",
       skill: Math.max(1, Math.min(10, parseInt(a.skill, 10) || 1)),
@@ -62,8 +71,8 @@
       status: ["accepted", "rejected"].includes(a.status) ? a.status : "pending",
       note: a.note || "",
       decided_by: a.decided_by || null,
-      decided_at: a.decided_at || null,
-      created_at: a.created_at || a.createdAt || null,
+      decided_at: iso(a.decided_at),
+      created_at: iso(a.created_at || a.createdAt),
       sample: !!a.sample,
     };
   }
@@ -321,5 +330,5 @@
   });
 
   // ---------- boot ----------
-  if (api.isLoggedIn()) showDash(); else showLogin();
+  api.ready().then(() => { if (api.isLoggedIn()) showDash(); else showLogin(); });
 })();

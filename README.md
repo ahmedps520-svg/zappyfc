@@ -13,16 +13,22 @@ It is plain HTML/CSS/JS with no build step. Every page works on phones.
 
 **Admin HQ:** live stats, Pending / Accepted / Rejected tabs, search, platform, region and skill filters, accept / reject / undo, private notes, "accepted by X" history, TikTok profile links, CSV export. It refreshes every 20 seconds and pops a toast when new applications come in.
 
-## Connecting the database (Forgebase)
+## Connecting the database (ForgeBase)
 
-1. Paste the prompt in [`FORGEBASE_PROMPT.md`](FORGEBASE_PROMPT.md) into your Forgebase session.
-2. It gives you an API URL. Put that URL in [`js/config.js`](js/config.js):
-   ```js
-   API_BASE_URL: "https://api.zappyfc.online",
-   ```
-3. Commit and push. The yellow **DEMO MODE** banner disappears.
+The site uses a [ForgeBase](https://forgebase.art/docs) project (Supabase-compatible) through `supabase-js`:
 
-Until step 2 the site runs in **demo mode**. Applications only save in the visitor's own browser, and the admin login is any username with the password `zappy-demo`.
+- table `applications`: the public `anon` key may only **insert**; signed-in admins can read, update and delete
+- admin login = ForgeBase Auth email + password (one account each for the two admins)
+- realtime on `applications`, so new applications show up on the dashboard instantly
+
+Put the project's API URL and `anon` key (ForgeBase → API & Keys → Connect) in [`js/config.js`](js/config.js):
+```js
+FORGEBASE_URL: "https://api.forgebase.art/p/<project-ref>",
+FORGEBASE_ANON_KEY: "<anon key>",
+```
+Never put the `service_role` key in the site.
+
+Until both are filled in, the site runs in **demo mode**. Applications only save in the visitor's own browser, and the admin login is any email with the password `zappy-demo`.
 
 ## Hosting on GitHub Pages (free, no wake-up delay, custom domain)
 
@@ -56,6 +62,6 @@ Then open http://localhost:8765.
 - `index.html`: landing page and join wizard
 - `admin/index.html`: Admin HQ
 - `css/style.css`, `css/admin.css`: theme
-- `js/config.js`: **API URL goes here**
-- `js/api.js`: every backend call, plus demo mode
+- `js/config.js`: **ForgeBase URL + anon key go here**
+- `js/api.js`: every ForgeBase call (supabase-js), plus demo mode
 - `js/join.js`, `js/admin.js`, `js/site.js`, `js/bg.js`: wizard, dashboard, page effects, animated background

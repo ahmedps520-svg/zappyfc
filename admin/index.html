@@ -55,13 +55,13 @@
       <svg class="lock" aria-hidden="true"><use href="#i-lock"/></svg>
       <h1>ADMIN <span>HQ</span></h1>
       <p class="sub">Sign in to review Zappy FC applications.</p>
-      <label class="lbl" for="user">Username</label>
-      <div class="field"><input id="user" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+      <label class="lbl" for="user">Email</label>
+      <div class="field"><input id="user" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
       <label class="lbl" for="pass">Password</label>
       <div class="field"><input id="pass" name="password" type="password" autocomplete="current-password" required></div>
       <p class="err" id="loginErr" role="alert"></p>
       <button class="btn btn-primary" type="submit" id="loginBtn">Enter HQ</button>
-      <p class="demo-hint" id="demoHint" hidden>Demo mode: any username, password <b>zappy-demo</b></p>
+      <p class="demo-hint" id="demoHint" hidden>Demo mode: any email, password <b>zappy-demo</b></p>
     </form>
   </div>
 
@@ -74,7 +74,7 @@
           <div class="who">Signed in as <b id="whoName">Admin</b></div>
         </div>
         <div class="hq-actions">
-          <span class="live" title="Auto-refreshes every 20 seconds"><i></i>Live</span>
+          <span class="live" title="New applications appear automatically"><i></i>Live</span>
           <button class="icon-btn" type="button" id="exportBtn" aria-label="Download CSV" title="Download CSV"><svg aria-hidden="true"><use href="#i-down"/></svg></button>
           <button class="icon-btn" type="button" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg aria-hidden="true"><use href="#i-refresh"/></svg></button>
           <button class="btn btn-ghost btn-sm" type="button" id="logoutBtn"><svg aria-hidden="true"><use href="#i-out"/></svg>Log out</button>
@@ -116,6 +116,7 @@
 
   <div class="toast-host" id="toasts" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/bg.js"></script>
