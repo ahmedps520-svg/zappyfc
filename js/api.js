@@ -54,6 +54,20 @@
     return new ApiError(msg || fallback || "Something went wrong.", status || 500);
   }
 
+  // Run a ForgeBase call; on a dropped connection wait a moment and try once more.
+  async function attempt(fn, fallback) {
+    let res;
+    try { res = await fn(); } catch (e) { res = { error: e }; }
+    if (res && res.error) {
+      const err = toError(res.error, fallback);
+      if (err.status !== 0) throw err;
+      await wait(900);
+      try { res = await fn(); } catch (e) { throw toError(e, fallback); }
+      if (res && res.error) { const e2 = toError(res.error, fallback); e2.retried = true; throw e2; }
+    }
+    return res;
+  }
+
   // ---------- demo mode (browser-only storage) ----------
   function demoLoad() {
     const raw = store.get(DEMO_KEY);
@@ -112,9 +126,13 @@
         demoSave(list);
         return { ok: true };
       }
-      let res;
-      try { res = await db.from(TABLE).insert(row); } catch (e) { throw toError(e); }
-      if (res.error) throw toError(res.error, "Couldn't send your application.");
+      try {
+        await attempt(() => db.from(TABLE).insert(row), "Couldn't send your application.");
+      } catch (err) {
+        // The first try may have landed before the connection dropped: then the retry sees our own row.
+        if (err.status === 409 && err.retried) return { ok: true };
+        throw err;
+      }
       return { ok: true };
     },
 
@@ -136,11 +154,10 @@
         return { name: api.adminName() };
       }
       let res;
-      try { res = await db.auth.signInWithPassword({ email, password }); } catch (e) { throw toError(e); }
-      if (res.error) {
-        const m = String(res.error.message || "");
-        if (/invalid|credentials|password/i.test(m)) throw new ApiError("Wrong email or password.", 401);
-        throw toError(res.error, "Sign-in failed.");
+      try { res = await attempt(() => db.auth.signInWithPassword({ email, password }), "Sign-in failed."); }
+      catch (err) {
+        if (err.status !== 0 && /invalid|credentials|password|grant/i.test(err.message)) throw new ApiError("Wrong email or password.", 401);
+        throw err;
       }
       session = res.data.session;
       return { name: api.adminName() };
@@ -153,10 +170,7 @@
 
     async listApplications() {
       if (DEMO) { await wait(250); return demoLoad(); }
-      let res;
-      try { res = await db.from(TABLE).select("*").order("created_at", { ascending: false }); }
-      catch (e) { throw toError(e); }
-      if (res.error) throw toError(res.error, "Couldn't load applications.");
+      const res = await attempt(() => db.from(TABLE).select("*").order("created_at", { ascending: false }), "Couldn't load applications.");
       return res.data || [];
     },
 
@@ -176,9 +190,7 @@
         demoSave(list);
         return rec;
       }
-      let res;
-      try { res = await db.from(TABLE).update(p).eq("id", id).select(); } catch (e) { throw toError(e); }
-      if (res.error) throw toError(res.error, "Couldn't update.");
+      const res = await attempt(() => db.from(TABLE).update(p).eq("id", id).select(), "Couldn't update.");
       if (Array.isArray(res.data) && res.data.length === 0) throw new ApiError("Application not found or no permission.", 404);
       return Array.isArray(res.data) ? res.data[0] : res.data;
     },
@@ -189,9 +201,7 @@
         demoSave(demoLoad().filter((a) => a.id !== id));
         return { ok: true };
       }
-      let res;
-      try { res = await db.from(TABLE).delete().eq("id", id); } catch (e) { throw toError(e); }
-      if (res.error) throw toError(res.error, "Couldn't delete.");
+      await attempt(() => db.from(TABLE).delete().eq("id", id), "Couldn't delete.");
       return { ok: true };
     },
 

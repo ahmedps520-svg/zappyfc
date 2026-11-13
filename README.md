@@ -13,22 +13,26 @@ It is plain HTML/CSS/JS with no build step. Every page works on phones.
 
 **Admin HQ:** live stats, Pending / Accepted / Rejected tabs, search, platform, region and skill filters, accept / reject / undo, private notes, "accepted by X" history, TikTok profile links, CSV export. It refreshes every 20 seconds and pops a toast when new applications come in.
 
-## Connecting the database (ForgeBase)
+## Database: ForgeBase project "Zappy FC"
 
-The site uses a [ForgeBase](https://forgebase.art/docs) project (Supabase-compatible) through `supabase-js`:
-
-- table `applications`: the public `anon` key may only **insert**; signed-in admins can read, update and delete
-- admin login = ForgeBase Auth email + password (one account each for the two admins)
-- realtime on `applications`, so new applications show up on the dashboard instantly
-
-Put the project's API URL and `anon` key (ForgeBase → API & Keys → Connect) in [`js/config.js`](js/config.js):
-```js
-FORGEBASE_URL: "https://api.forgebase.art/p/<project-ref>",
-FORGEBASE_ANON_KEY: "<anon key>",
-```
+The site is connected to the ForgeBase project **Zappy FC** (`cqjaqhvwolwpzvmsdbuv`) at
+`https://api.forgebase.art/p/cqjaqhvwolwpzvmsdbuv`. The URL and public `anon` key are in [`js/config.js`](js/config.js).
 Never put the `service_role` key in the site.
 
-Until both are filled in, the site runs in **demo mode**. Applications only save in the visitor's own browser, and the admin login is any email with the password `zappy-demo`.
+- Table `applications` ([`forgebase/schema.sql`](forgebase/schema.sql)). The database itself checks the TikTok format, platform, region, skill 1–10, reason length, and allows only one pending application per TikTok.
+- Visitors can only **submit**. Only emails listed in the `admins` table can read, accept, reject, add notes or delete.
+- Realtime is on, so new applications appear in Admin HQ within seconds.
+- Public sign-ups are off. Admin accounts are created in the ForgeBase dashboard.
+
+**Adding an admin**
+1. Create a user with email and password in ForgeBase → Zappy FC → **Auth → Users**.
+2. Add their email to the `admins` table with **Database** or the SQL editor:
+   ```sql
+   INSERT INTO admins (email, name) VALUES ('them@example.com', 'Name');
+   ```
+   The name is what shows as "Accepted by …".
+
+**Demo mode:** if `FORGEBASE_URL` or `FORGEBASE_ANON_KEY` in `js/config.js` is empty, the site runs offline in demo mode (password `zappy-demo`).
 
 ## Hosting on GitHub Pages (free, no wake-up delay, custom domain)
 
